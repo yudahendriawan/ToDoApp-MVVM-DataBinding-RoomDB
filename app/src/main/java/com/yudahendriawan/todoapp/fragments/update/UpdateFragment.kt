@@ -1,5 +1,6 @@
 package com.yudahendriawan.todoapp.fragments.update
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.*
 import android.widget.Toast
@@ -7,11 +8,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.yudahendriawan.todoapp.R
-import com.yudahendriawan.todoapp.data.models.Priority
 import com.yudahendriawan.todoapp.data.models.ToDoData
 import com.yudahendriawan.todoapp.data.viewmodel.ToDoViewModel
-import com.yudahendriawan.todoapp.databinding.FragmentAddBinding
 import com.yudahendriawan.todoapp.databinding.FragmentUpdateBinding
 import com.yudahendriawan.todoapp.fragments.SharedViewModel
 
@@ -50,9 +50,15 @@ class UpdateFragment : Fragment() {
             R.id.menu_save -> {
                 updateItem()
             }
+
+            R.id.menu_delete -> {
+                confirmItemRemoval()
+            }
         }
         return super.onOptionsItemSelected(item)
     }
+
+
 
     private fun updateItem() {
         val title = binding.currentTitleEt.text.toString()
@@ -73,6 +79,19 @@ class UpdateFragment : Fragment() {
         } else {
             Toast.makeText(requireContext(), "Please fill out all fields!", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun confirmItemRemoval() {
+        val builder = MaterialAlertDialogBuilder(requireContext())
+        builder.setPositiveButton("Yes"){_,_ ->
+            mToDoViewModel.deleteItem(args.currentItem)
+            Toast.makeText(requireContext(), "Successfully removed: '${args.currentItem.title}'!", Toast.LENGTH_SHORT).show()
+            findNavController().navigate(R.id.action_updateFragment_to_listFragment)
+        }
+        builder.setNegativeButton("No"){_,_ ->}
+        builder.setTitle("Delete '${args.currentItem.title}'?")
+        builder.setMessage("Are you sure to delete '${args.currentItem.title}'?")
+        builder.create().show()
     }
 
     override fun onDestroyView() {
