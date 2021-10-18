@@ -1,10 +1,8 @@
 package com.yudahendriawan.todoapp.fragments.list
 
 import android.os.Bundle
+import android.view.*
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
 import com.yudahendriawan.todoapp.R
 import com.yudahendriawan.todoapp.databinding.FragmentListBinding
@@ -20,7 +18,7 @@ class ListFragment : Fragment() {
     ): View? {
         // Inflate the layout for this fragment
 
-        _binding = FragmentListBinding.inflate(layoutInflater, container, false)
+        _binding = FragmentListBinding.inflate(inflater, container, false)
 
         binding.floatingActionButton.setOnClickListener{
             findNavController().navigate(R.id.action_listFragment_to_addFragment)
@@ -30,7 +28,13 @@ class ListFragment : Fragment() {
             findNavController().navigate(R.id.action_listFragment_to_updateFragment)
         }
 
+        setHasOptionsMenu(true)
+
         return binding.root
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.list_fragment_menu, menu)
     }
 
     override fun onDestroyView() {
