@@ -31,21 +31,26 @@ class ListFragment : Fragment() {
         // Inflate the layout for this fragment
 
         _binding = FragmentListBinding.inflate(inflater, container, false)
-
-        binding.floatingActionButton.setOnClickListener{
-            findNavController().navigate(R.id.action_listFragment_to_addFragment)
-        }
+        binding.lifecycleOwner = this
+        binding.mSharedViewModel = mSharedViewModel
 
         setHasOptionsMenu(true)
 
+        setupRecyclerView()
 
-
-        binding.recyclerView.adapter = adapter
-        binding.recyclerView.layoutManager = LinearLayoutManager(requireActivity())
+        //Obeserve Live Data
         mToDoViewModel.getAllData.observe(viewLifecycleOwner, { data ->
             mSharedViewModel.checkIfDatabaseEmpty(data)
             adapter.setData(data)
         })
+
+        return binding.root
+    }
+
+    private fun setupRecyclerView() {
+        binding.recyclerView.adapter = adapter
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireActivity())
+
 
         binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -62,18 +67,6 @@ class ListFragment : Fragment() {
                 }
             }
         })
-
-        mSharedViewModel.emptyDatabase.observe(viewLifecycleOwner, Observer {
-            showEmptyDatabaseView(it)
-            //mSharedViewModel.checkIfDatabaseEmpty(adapter.dataList)
-        })
-
-        return binding.root
-    }
-
-    private fun showEmptyDatabaseView(emptyDatabase: Boolean) {
-            binding.noDataImageView.visibility = if(emptyDatabase) View.VISIBLE else View.INVISIBLE
-            binding.noDataTextView.visibility = if(emptyDatabase) View.VISIBLE else View.INVISIBLE
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -81,7 +74,7 @@ class ListFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item.itemId){
+        when (item.itemId) {
             R.id.menu_delete_all -> {
                 confirmRemoveAll()
             }
@@ -91,16 +84,18 @@ class ListFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        //avoid memory leak
         _binding = null
     }
 
-    private fun confirmRemoveAll(){
+    private fun confirmRemoveAll() {
         val builder = MaterialAlertDialogBuilder(requireContext())
-        builder.setPositiveButton("Yes"){_,_ ->
+        builder.setPositiveButton("Yes") { _, _ ->
             mToDoViewModel.deleteAll()
-            Toast.makeText(requireContext(), "Successfully clear list To Do!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Successfully clear list To Do!", Toast.LENGTH_SHORT)
+                .show()
         }
-        builder.setNegativeButton("No"){_,_ ->}
+        builder.setNegativeButton("No") { _, _ -> }
         builder.setTitle("Delete Everything?")
         builder.setMessage("Your data will be deleted permanently")
         builder.create().show()

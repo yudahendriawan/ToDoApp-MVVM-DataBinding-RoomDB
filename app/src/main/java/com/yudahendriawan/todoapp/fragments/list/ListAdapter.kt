@@ -17,28 +17,26 @@ class ListAdapter: RecyclerView.Adapter<ListAdapter.MyViewHolder>() {
 
     class MyViewHolder(private val binding: RowLayoutBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(toDoData: ToDoData){
-            binding.titleTxt.text = toDoData.title
-            binding.descriptionTxt.text = toDoData.description
+            binding.toDoData = toDoData
+            binding.executePendingBindings()
+        }
 
-            when(toDoData.priority){
-                Priority.HIGH -> binding.priorityIndicator.setCardBackgroundColor(ContextCompat.getColor(binding.root.context, R.color.red))
-                Priority.MEDIUM -> binding.priorityIndicator.setCardBackgroundColor(ContextCompat.getColor(binding.root.context, R.color.yellow))
-                Priority.LOW -> binding.priorityIndicator.setCardBackgroundColor(ContextCompat.getColor(binding.root.context, R.color.green))
-            }
-
-            binding.rowBackground.setOnClickListener {
-                val action = ListFragmentDirections.actionListFragmentToUpdateFragment(toDoData)
-                binding.root.findNavController().navigate(action)
+        companion object {
+            fun from(parent: ViewGroup) : MyViewHolder {
+                val layoutInflater = LayoutInflater.from(parent.context)
+                val binding = RowLayoutBinding.inflate(layoutInflater, parent, false)
+                return MyViewHolder(binding)
             }
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-        return MyViewHolder(RowLayoutBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        return MyViewHolder.from(parent)
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        holder.bind(dataList[position])
+        val currentItem = dataList[position]
+        holder.bind(currentItem)
     }
 
     override fun getItemCount(): Int {

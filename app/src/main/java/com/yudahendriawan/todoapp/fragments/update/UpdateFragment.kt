@@ -17,24 +17,23 @@ import com.yudahendriawan.todoapp.fragments.SharedViewModel
 
 class UpdateFragment : Fragment() {
 
+    private val args by navArgs<UpdateFragmentArgs>()
+
     private var _binding: FragmentUpdateBinding? = null
     private val binding get() = _binding!!
 
-    private val args by navArgs<UpdateFragmentArgs>()
+
     private val mSharedViewModel: SharedViewModel by viewModels()
     private val mToDoViewModel: ToDoViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentUpdateBinding.inflate(inflater, container, false)
+        binding.args = args
 
         setHasOptionsMenu(true)
-
-        binding.currentTitleEt.setText(args.currentItem.title)
-        binding.currentDescriptionEt.setText(args.currentItem.description)
-        binding.currentPrioritiesSpinner.setSelection(mSharedViewModel.parsePriorityToInt(args.currentItem.priority))
 
         binding.currentPrioritiesSpinner.onItemSelectedListener = mSharedViewModel.listener
 
@@ -59,7 +58,6 @@ class UpdateFragment : Fragment() {
     }
 
 
-
     private fun updateItem() {
         val title = binding.currentTitleEt.text.toString()
         val desc = binding.currentDescriptionEt.text.toString()
@@ -77,18 +75,23 @@ class UpdateFragment : Fragment() {
             Toast.makeText(requireContext(), "Successfully updated!", Toast.LENGTH_SHORT).show()
             findNavController().navigate(R.id.action_updateFragment_to_listFragment)
         } else {
-            Toast.makeText(requireContext(), "Please fill out all fields!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Please fill out all fields!", Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
     private fun confirmItemRemoval() {
         val builder = MaterialAlertDialogBuilder(requireContext())
-        builder.setPositiveButton("Yes"){_,_ ->
+        builder.setPositiveButton("Yes") { _, _ ->
             mToDoViewModel.deleteItem(args.currentItem)
-            Toast.makeText(requireContext(), "Successfully removed: '${args.currentItem.title}'!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                "Successfully removed: '${args.currentItem.title}'!",
+                Toast.LENGTH_SHORT
+            ).show()
             findNavController().navigate(R.id.action_updateFragment_to_listFragment)
         }
-        builder.setNegativeButton("No"){_,_ ->}
+        builder.setNegativeButton("No") { _, _ -> }
         builder.setTitle("Delete '${args.currentItem.title}'?")
         builder.setMessage("Are you sure to delete '${args.currentItem.title}'?")
         builder.create().show()
