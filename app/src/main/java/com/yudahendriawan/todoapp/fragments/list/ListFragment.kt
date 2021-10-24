@@ -3,6 +3,8 @@ package com.yudahendriawan.todoapp.fragments.list
 import android.os.Bundle
 import android.view.*
 import android.widget.Toast
+import androidx.appcompat.widget.SearchView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -18,9 +20,10 @@ import com.yudahendriawan.todoapp.databinding.FragmentListBinding
 import com.yudahendriawan.todoapp.fragments.SharedViewModel
 import com.yudahendriawan.todoapp.fragments.list.adapter.ListAdapter
 import com.yudahendriawan.todoapp.utils.hideKeyboard
+import com.yudahendriawan.todoapp.utils.observeOnce
 import jp.wasabeef.recyclerview.animators.SlideInUpAnimator
 
-class ListFragment : Fragment() {
+class ListFragment : Fragment(), SearchView.OnQueryTextListener {
 
     private var _binding: FragmentListBinding? = null
     private val binding get() = _binding!!
@@ -96,21 +99,69 @@ class ListFragment : Fragment() {
     }
 
     private fun restoreDeletedData(view: View, deletedItem: ToDoData){
-        val snackBar = Snackbar.make(view, "Deleted '${deletedItem.title}'", Snackbar.LENGTH_LONG)
+        val snackBar = Snackbar.make(view, "Deleted '${deletedItem.title}'", 5000)
         snackBar.setAction("Undo"){
             mToDoViewModel.insertData(deletedItem)
         }
+        snackBar.setActionTextColor(ContextCompat.getColor(requireContext(), R.color.green))
+        snackBar.animationMode = Snackbar.ANIMATION_MODE_SLIDE
         snackBar.show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.list_fragment_menu, menu)
+
+        val search = menu.findItem(R.id.menu_search)
+        val searchView = search.actionView as? SearchView
+        searchView?.queryHint = "Find your To Do"
+        /*searchView?.isSubmitButtonEnabled = true*/
+        searchView?.setOnQueryTextListener(this)
+    }
+
+    override fun onQueryTextSubmit(query: String?): Boolean {
+        if(query != null){
+            searchThroughDatabase(query)
+        }
+        return true
+    }
+
+    override fun onQueryTextChange(query: String?): Boolean {
+        if(query != null){
+            searchThroughDatabase(query)
+        }
+        return true
+    }
+
+    private fun searchThroughDatabase(query: String){
+        val searchQuery = "%$query%"
+
+        mToDoViewModel.searchDatabase(searchQuery).observeOnce(viewLifecycleOwner, { list ->
+            list?.let {
+                adapter.setData(it)
+                binding.recyclerView.scheduleLayoutAnimation()
+            }
+        })
+
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_delete_all -> {
                 confirmRemoveAll()
+            }
+
+            R.id.menu_priority_high -> {
+                mToDoViewModel.sortByHighPriority.observe(viewLifecycleOwner, {
+                    adapter.setData(it)
+                    binding.recyclerView.scheduleLayoutAnimation()
+                } )
+            }
+
+            R.id.menu_priority_low -> {
+                mToDoViewModel.sortByLowPriority.observe(viewLifecycleOwner, {
+                    adapter.setData(it)
+                    binding.recyclerView.scheduleLayoutAnimation()
+                } )
             }
         }
         return super.onOptionsItemSelected(item)
@@ -134,5 +185,7 @@ class ListFragment : Fragment() {
         builder.setMessage("Your data will be deleted permanently")
         builder.create().show()
     }
+
+
 
 }

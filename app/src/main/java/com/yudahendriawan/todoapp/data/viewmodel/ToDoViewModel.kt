@@ -13,14 +13,11 @@ import kotlinx.coroutines.launch
 class ToDoViewModel(application: Application): AndroidViewModel(application) {
 
     private val toDoDao = ToDoDatabase.getDatabase(application).toDoDao()
-    private val repository: ToDoRepository
+    private val repository: ToDoRepository = ToDoRepository(toDoDao)
 
-    val getAllData: LiveData<List<ToDoData>>
-
-    init{
-        repository = ToDoRepository(toDoDao)
-        getAllData = repository.getAllData
-    }
+    val getAllData: LiveData<List<ToDoData>> = repository.getAllData
+    val sortByHighPriority: LiveData<List<ToDoData>> = repository.sortByHighPriority
+    val sortByLowPriority: LiveData<List<ToDoData>> = repository.sortByLowPriority
 
     fun insertData(toDoData: ToDoData){
         viewModelScope.launch(Dispatchers.IO) {
@@ -44,6 +41,10 @@ class ToDoViewModel(application: Application): AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.deleteAll()
         }
+    }
+
+    fun searchDatabase(searchQuery: String): LiveData<List<ToDoData>>{
+        return repository.searchDatabase(searchQuery)
     }
 
 }
